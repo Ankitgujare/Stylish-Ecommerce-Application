@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901720155697",
+    "project_id": "stylist-shopping-application",
+    "storage_bucket": "stylist-shopping-application.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901720155697:android:128e19a0a308d6f451d710",
+        "android_client_info": {
+          "package_name": "com.example.stylistshoppingapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUaMvlUYIJU9NIE2-crxVB6hSLou6leRo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
