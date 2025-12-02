@@ -41,6 +41,18 @@ I welcome contributions from the community! If you're interested in enhancing th
 *   Adding unit and UI tests.
 *   Enhancing the UI/UX with more animations.
 
+
+
+Ui screens
+![Image Alt](https://github.com/Ankitgujare/Stylish-Ecommerce-Application/blob/18f4a92a7f230b1621c0fd09ea30c05b643b7dc9/One.png)
+
+
+
+
+
+
+
+
 ## 📄 License
 
 This project is open-source and available under the MIT License.
