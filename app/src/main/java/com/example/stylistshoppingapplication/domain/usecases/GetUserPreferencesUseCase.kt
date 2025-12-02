@@ -10,6 +10,7 @@ class GetUserPreferencesUseCase(
 
     fun isFirstTimeLogin():Flow<Boolean> = userPreferenceReposatory.isFirstTimeLogin
     fun isLogedIn():Flow<Boolean> = userPreferenceReposatory.isLogedIn
+    fun isDarkMode():Flow<Boolean> = userPreferenceReposatory.isDarkMode
 
 
 

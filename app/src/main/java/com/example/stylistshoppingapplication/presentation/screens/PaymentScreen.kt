@@ -1,4 +1,4 @@
-package com.example.stylish.ui.screens
+package com.example.stylistshoppingapplication.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -25,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +36,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.stylistshoppingapplication.presentation.ViewModel.CartViewModel
 
 @Composable
-fun PaymentScreen(onPaid: () -> Unit) {
+fun PaymentScreen(
+    navController: NavController,
+    cartViewModel: CartViewModel
+) {
+    val checkoutTotal by cartViewModel.checkoutTotal.collectAsState()
     var selectedPayment by remember { mutableStateOf(0) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
     
     val paymentMethods = listOf(
         "VISA" to "***********2109",
@@ -47,6 +56,51 @@ fun PaymentScreen(onPaid: () -> Unit) {
         "Mastercard" to "***********2109",
         "Apple Pay" to "***********2109"
     )
+    
+    // Payment Success Dialog
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Success",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .background(Color(0xFFD32F2F), shape = CircleShape)
+                            .padding(12.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Payment done successfully",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = false }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Continue", color = Color.White)
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
     
     Box(
         modifier = Modifier
@@ -63,11 +117,11 @@ fun PaymentScreen(onPaid: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
                 Text(
-                    text = "Checkout",
+                    text = "Payment",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp)
@@ -79,7 +133,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
             // Order Summary
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
@@ -96,8 +150,8 @@ fun PaymentScreen(onPaid: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Order")
-                        Text("₹ 7,000")
+                        Text("Order Amount")
+                        Text("₹${String.format("%.0f", checkoutTotal)}")
                     }
                     
                     Row(
@@ -105,7 +159,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Shipping")
-                        Text("₹ 30")
+                        Text("Free", color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -120,7 +174,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "₹ 7,030",
+                            text = "₹${String.format("%.0f", checkoutTotal)}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -132,7 +186,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
             
             // Payment Methods
             Text(
-                text = "Payment",
+                text = "Payment Method",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -146,7 +200,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
                         .padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (selectedPayment == index) 
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) 
+                            Color(0xFFE3F2FD) 
                         else Color.White
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -158,15 +212,15 @@ fun PaymentScreen(onPaid: () -> Unit) {
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Payment method icon
+                        // Payment method icon placeholder
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(
                                     when (method) {
-                                        "VISA" -> Color.Blue
-                                        "PayPal" -> Color.Blue
-                                        "Mastercard" -> Color.Red
+                                        "VISA" -> Color(0xFF1A237E)
+                                        "PayPal" -> Color(0xFF003087)
+                                        "Mastercard" -> Color(0xFFB71C1C)
                                         "Apple Pay" -> Color.Black
                                         else -> Color.Gray
                                     },
@@ -175,13 +229,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = when (method) {
-                                    "VISA" -> "V"
-                                    "PayPal" -> "P"
-                                    "Mastercard" -> "M"
-                                    "Apple Pay" -> "🍎"
-                                    else -> "?"
-                                },
+                                text = method.first().toString(),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
@@ -208,7 +256,7 @@ fun PaymentScreen(onPaid: () -> Unit) {
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = "Selected",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color(0xFF1565C0)
                             )
                         }
                     }
@@ -217,29 +265,24 @@ fun PaymentScreen(onPaid: () -> Unit) {
             
             Spacer(modifier = Modifier.weight(1f))
             
-            // Continue Button
+            // Pay Button - RED COLOR
             Button(
-                onClick = onPaid,
-                modifier = Modifier.fillMaxWidth(),
+                onClick = { 
+                    showSuccessDialog = true
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color(0xFFD32F2F)  // Red color
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Continue",
+                    text = "Pay ₹${String.format("%.0f", checkoutTotal)}",
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
-}
-
-
-@Composable
-@Preview(showSystemUi = true)
-fun PaymentscreenPreview() {
-    PaymentScreen(onPaid = { })
 }

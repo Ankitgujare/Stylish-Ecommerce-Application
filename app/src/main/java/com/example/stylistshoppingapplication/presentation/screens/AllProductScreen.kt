@@ -1,5 +1,6 @@
 package com.example.stylistshoppingapplication.presentation.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,11 +26,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.stylistshoppingapplication.R
 import com.example.stylistshoppingapplication.domain.model.ProductModel
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalContext
+import com.example.stylistshoppingapplication.data.local.repository.ProfileRepository
+import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.stylistshoppingapplication.presentation.ViewModel.ProductViewModel
+
 
 @Composable
 fun ViewAllProductScreen(
@@ -37,6 +49,21 @@ fun ViewAllProductScreen(
     navController: NavController
 ) {
     val uiState by productViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val profileRepository = remember { ProfileRepository(context) }
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    var localProfileImageUrl by remember { mutableStateOf<String?>(null) }
+
+    // Load profile image from Room Database
+    LaunchedEffect(currentUser?.uid) {
+        currentUser?.uid?.let { userId ->
+            profileRepository.getProfileById(userId).collect { profile ->
+                localProfileImageUrl = profile?.photoUrl
+            }
+        }
+    }
+
+    val profileImageUrl = currentUser?.photoUrl?.toString() ?: localProfileImageUrl
 
     Scaffold(
         topBar = {
@@ -48,7 +75,9 @@ fun ViewAllProductScreen(
                     }
                     else -> 0
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                profileImageUrl = profileImageUrl,
+                navController = navController
             )
         }
     ) { paddingValues ->
@@ -96,7 +125,9 @@ fun ViewAllProductScreen(
 @Composable
 private fun ViewAllTopBar(
     productCount: Int,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    profileImageUrl: String?,
+    navController: NavController
 ) {
     TopAppBar(
         title = {
@@ -112,12 +143,30 @@ private fun ViewAllTopBar(
             }
         },
         actions = {
-            Text(
-                text = "$productCount Products",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                modifier = Modifier.padding(end = 16.dp)
-            )
+            if (profileImageUrl != null && profileImageUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = profileImageUrl,
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.LightGray, CircleShape)
+                        .clickable { navController.navigate("profile_screen") }, // Assuming route name
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.profile),
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.LightGray, CircleShape)
+                        .clickable { navController.navigate("profile_screen") }, // Assuming route name
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.White,
@@ -188,65 +237,140 @@ private fun EmptyProductsState() {
 @Composable
 fun ProductCard(
     product: ProductModel,
-    onProductClick: (ProductModel) -> Unit
+    onProductClick: (ProductModel) -> Unit,
+    onAddToCart: (() -> Unit)? = null,
+    onAddToWishlist: (() -> Unit)? = null
 ) {
     val discountedPrice = calculateDiscountedPrice(product.price, product.discountPercentage)
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(180.dp) // Fixed width (340px @ 2x)
+            .height(300.dp) // Fixed height to ensure uniform dimensions
             .clickable { onProductClick(product) },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(8.dp)) { // Reduced padding
+            // Product Image
             AsyncImage(
                 model = product.thumbnail,
                 contentDescription = product.title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(140.dp) // Reduced image height
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(id = R.drawable.placeholder),
                 error = painterResource(id = R.drawable.placeholder)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            product.brand?.let {
-                Text(
-                    text = it.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF666666),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            // Product Title
+            Text(
+                text = product.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            // Product Description
             Text(
-                text = product.title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
+                text = product.description ?: "Neque porro quisquam est qui dolorem ipsum quia",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF666666),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = TextUnit(18f, TextUnitType.Sp),
-                modifier = Modifier.height(48.dp)
+                lineHeight = 18.sp
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-            RatingSection(rating = product.rating)
             Spacer(modifier = Modifier.height(8.dp))
-            PriceSection(
-                originalPrice = product.price,
-                discountedPrice = discountedPrice,
-                discountPercentage = product.discountPercentage
-            )
-            ExchangeOption(discountedPrice = discountedPrice)
+
+            // Price Section - Inline
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Discounted Price
+                Text(
+                    text = "₹${formatPrice(discountedPrice)}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                // Original Price (strikethrough)
+                Text(
+                    text = "₹${formatPrice(product.price)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF999999),
+                    textDecoration = TextDecoration.LineThrough
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                // Discount Badge
+                Text(
+                    text = "${product.discountPercentage.toInt()}%Off",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF4757)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Rating Section with Review Count
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Star Rating
+                val filledStars = product.rating.toInt()
+                val halfStar = product.rating - filledStars >= 0.5
+                Row {
+                    repeat(filledStars) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.starfilled),
+                            contentDescription = null,
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    if (halfStar) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.half_star),
+                            contentDescription = null,
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    repeat(5 - filledStars - if (halfStar) 1 else 0) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.outlinestar),
+                            contentDescription = null,
+                            tint = Color(0xFFE0E0E0),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.width(6.dp))
+                
+                // Review Count
+                Text(
+                    text = "56890",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF999999)
+                )
+            }
         }
     }
 }
@@ -341,3 +465,10 @@ private fun formatPrice(price: Double): String {
     return if (price >= 1000) "%,d".format(price.toInt())
     else "%.2f".format(price)
 }
+
+
+
+
+
+
+

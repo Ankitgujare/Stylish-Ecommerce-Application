@@ -1,15 +1,21 @@
 package com.example.stylistshoppingapplication.presentation.ViewModel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.stylistshoppingapplication.data.local.repository.CartRepository
 import com.example.stylistshoppingapplication.domain.model.CartItem
 import com.example.stylistshoppingapplication.domain.model.ProductModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class CartViewModel : ViewModel() {
+class CartViewModel(context: Context) : ViewModel() {
+    private val repository = CartRepository(context)
+    
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
     val cartItems: StateFlow<List<CartItem>> = _cartItems.asStateFlow()
 
@@ -19,8 +25,29 @@ class CartViewModel : ViewModel() {
     private val _cartItemCount = MutableStateFlow(0)
     val cartItemCount: StateFlow<Int> = _cartItemCount.asStateFlow()
 
+    private val _checkoutItems = MutableStateFlow<List<CartItem>>(emptyList())
+    val checkoutItems: StateFlow<List<CartItem>> = _checkoutItems.asStateFlow()
+
+    private val _checkoutTotal = MutableStateFlow(0.0)
+    val checkoutTotal: StateFlow<Double> = _checkoutTotal.asStateFlow()
+
     init {
+        loadCartItems()
         updateCartTotals()
+    }
+
+    private fun loadCartItems() {
+        viewModelScope.launch {
+            repository.getAllCartItems()
+                .catch { e ->
+                    e.printStackTrace()
+                    emit(emptyList())
+                }
+                .collectLatest { cartItems ->
+                    _cartItems.value = cartItems
+                    updateCartTotals()
+                }
+        }
     }
 
     fun addToCart(product: ProductModel, quantity: Int = 1, selectedSize: String = "", selectedColor: String = "") {
@@ -29,14 +56,15 @@ class CartViewModel : ViewModel() {
             
             if (existingItem != null) {
                 // Update existing item quantity
-                val updatedItems = _cartItems.value.map { item ->
+                val updatedItem = existingItem.copy(quantity = existingItem.quantity + quantity)
+                repository.updateCartItem(updatedItem)
+                _cartItems.value = _cartItems.value.map { item ->
                     if (item.product.id == product.id) {
-                        item.copy(quantity = item.quantity + quantity)
+                        updatedItem
                     } else {
                         item
                     }
                 }
-                _cartItems.value = updatedItems
             } else {
                 // Add new item
                 val newItem = CartItem(
@@ -45,6 +73,7 @@ class CartViewModel : ViewModel() {
                     selectedSize = selectedSize,
                     selectedColor = selectedColor
                 )
+                repository.insertCartItem(newItem)
                 _cartItems.value = _cartItems.value + newItem
             }
             updateCartTotals()
@@ -53,6 +82,7 @@ class CartViewModel : ViewModel() {
 
     fun removeFromCart(productId: Int) {
         viewModelScope.launch {
+            repository.deleteCartItem(productId)
             _cartItems.value = _cartItems.value.filter { it.product.id != productId }
             updateCartTotals()
         }
@@ -65,7 +95,9 @@ class CartViewModel : ViewModel() {
             } else {
                 val updatedItems = _cartItems.value.map { item ->
                     if (item.product.id == productId) {
-                        item.copy(quantity = newQuantity)
+                        val updatedItem = item.copy(quantity = newQuantity)
+                        repository.updateCartItem(updatedItem)
+                        updatedItem
                     } else {
                         item
                     }
@@ -78,6 +110,7 @@ class CartViewModel : ViewModel() {
 
     fun clearCart() {
         viewModelScope.launch {
+            repository.clearCart()
             _cartItems.value = emptyList()
             updateCartTotals()
         }
@@ -97,5 +130,10 @@ class CartViewModel : ViewModel() {
 
     fun getCartItemQuantity(productId: Int): Int {
         return _cartItems.value.find { it.product.id == productId }?.quantity ?: 0
+    }
+
+    fun prepareCheckout(items: List<CartItem>) {
+        _checkoutItems.value = items
+        _checkoutTotal.value = items.sumOf { it.totalPrice }
     }
 }

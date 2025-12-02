@@ -2,133 +2,96 @@ package com.example.stylistshoppingapplication.navigation
 
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.stylish.ui.screens.OnboardingScreen
-import com.example.stylish.ui.screens.PaymentSuccessScreen
-import com.example.stylistshoppingapplication.data.local.UserPrefrenceDataStore
-import com.example.stylistshoppingapplication.data.reposatoryImp.UserPrefrenceImplementation
-import com.example.stylistshoppingapplication.domain.reposatory.userPreferenceReposatory.UserPreferenceReposatory
-import com.example.stylistshoppingapplication.domain.usecases.GetUserPreferencesUseCase
-import com.example.stylistshoppingapplication.domain.usecases.SetUserPrefrenceUseCase
-import com.example.stylistshoppingapplication.domain.util.Results
 import com.example.stylistshoppingapplication.presentation.ViewModel.AuthViewModel
 import com.example.stylistshoppingapplication.presentation.screens.SplashScreen
 import com.example.stylistshoppingapplication.presentation.screens.HomeScreen
 import com.example.stylistshoppingapplication.presentation.ViewModel.ProductViewModel
-import com.example.stylistshoppingapplication.presentation.ViewModel.userPrefrenceViewModel.UserPrefrenceViewModel
-import com.example.stylistshoppingapplication.presentation.ViewModel.viewModelFactory.AuthViewModelFactory
-import com.example.stylistshoppingapplication.presentation.screens.GetstartedScreen
 import com.example.stylistshoppingapplication.presentation.screens.ProductDetailScreen
-import com.example.stylistshoppingapplication.presentation.screens.ViewAllProductScreen
 import com.example.stylistshoppingapplication.presentation.screens.CartScreen
-import com.example.stylistshoppingapplication.presentation.screens.WishlistScreen
-import com.example.stylistshoppingapplication.presentation.screens.SearchScreen
-import com.example.stylistshoppingapplication.presentation.screens.CheckoutScreen
-import com.example.stylistshoppingapplication.presentation.screens.PlaceOrderScreen
-import com.example.stylistshoppingapplication.presentation.screens.ProfileScreen
-import com.example.stylistshoppingapplication.presentation.screens.SettingsScreen
-import com.example.stylistshoppingapplication.presentation.screens.SignUpScreen
-import com.example.stylistshoppingapplication.presentation.ViewModel.CartViewModel
-import com.example.stylistshoppingapplication.presentation.ViewModel.WishlistViewModel
-import com.example.stylistshoppingapplication.presentation.ViewModel.SearchViewModel
 import com.example.stylistshoppingapplication.presentation.screens.LoginScreen
+import com.example.stylistshoppingapplication.presentation.ViewModel.CartViewModel
+import com.example.stylistshoppingapplication.presentation.ViewModel.viewModelFactory.CartViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.Route
 
 
 @Composable
-fun AppNavigation(authViewModel: AuthViewModel,context: Context) {
+fun AppNavigation(authViewModel: AuthViewModel, context: Context) {
     val navController = rememberNavController()
     val productViewModel: ProductViewModel = viewModel()
-    val cartViewModel: CartViewModel = viewModel()
-    val wishlistViewModel: WishlistViewModel = viewModel()
-    val searchViewModel: SearchViewModel = viewModel()
+    
+    // Create CartViewModel with factory
+    val cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(context))
+    
+    // Create WishlistViewModel and SearchViewModel
+    val wishlistViewModel: com.example.stylistshoppingapplication.presentation.ViewModel.WishlistViewModel = viewModel()
+    val searchViewModel: com.example.stylistshoppingapplication.presentation.ViewModel.SearchViewModel = viewModel()
+    
+    // DataStore
+    val dataStore = remember { com.example.stylistshoppingapplication.data.local.UserPrefrenceDataStore(context) }
 
-    // Create dependencies ONCE
-    val userPreferencesDataStore = remember { UserPrefrenceDataStore(context) }
-    val UserPreferenceReposatory= remember { UserPrefrenceImplementation(userPreferencesDataStore) }
-    val getUserPreferencesUseCase= remember { GetUserPreferencesUseCase(UserPreferenceReposatory) }
-    val setUserPrefrenceUseCase= remember { SetUserPrefrenceUseCase(UserPreferenceReposatory) }
-    val UserPreferenceViewModel= remember { UserPrefrenceViewModel(getUserPreferencesUseCase,setUserPrefrenceUseCase) }
+    // Create ProfileViewModel
+    val profileViewModel: com.example.stylistshoppingapplication.presentation.ViewModel.ProfileViewModel = viewModel(
+        factory = com.example.stylistshoppingapplication.presentation.ViewModel.viewModelFactory.ProfileViewModelFactory(context)
+    )
 
-
-    // Observe user preferences state
-    val userPreferencesState by UserPreferenceViewModel.state.collectAsState()
-
-
-
-
-    NavHost(navController = navController, startDestination = Routes.splashScreen.route) {
-        composable(Routes.homescreen.route) {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("home") {
             HomeScreen(
                 productViewModel = productViewModel,
                 navController = navController,
-                cartViewModel = cartViewModel,
-                wishlistViewModel = wishlistViewModel,
-                searchViewModel = searchViewModel
+                cartViewModel = cartViewModel
+            )
+        }
+// ... (rest of the file until profile composable)
+        composable("profile") {
+            com.example.stylistshoppingapplication.presentation.screens.ProfileScreen(
+                navController = navController,
+                viewModel = profileViewModel
             )
         }
 
-
-            composable(Routes.splashScreen.route) {
-                SplashScreen()
-            }
-
-        composable(Routes.getstarted.route) {
-            GetstartedScreen(Getstarted = {
-                navController.navigate(Routes.homescreen.route)
-            })
+        composable("splash") {
+            SplashScreenWithNavigation(navController, dataStore)
         }
-
-
-        composable(Routes.loginScreen.route) {
-            LoginScreen(
-                navController,
-                onRegister = {
-                    navController.navigate(Routes.signupScreen.route)
-                },
-                onForgot = {
-                    navController.navigate(Routes.forgetpassword.route)
-                },
-                //Passing the authViewModel
-                authViewModel
-            )
-        }
-
-
-        composable(Routes.onborardingScreen.route){
-            OnboardingScreen(onGetStarted = {
-               navController.navigate(Routes.homescreen.route) {
-                   popUpTo(Routes.onborardingScreen.route) { inclusive = true }
-               }
-            },
-            onSkip = {
-                navController.navigate(Routes.homescreen.route) {
-                    popUpTo(Routes.onborardingScreen.route) { inclusive = true }
+        
+        composable("onboarding") {
+            com.example.stylistshoppingapplication.presentation.screens.OnboardingScreen(
+                navController = navController,
+                onFinish = {
+                    // Set first time login to false
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                        dataStore.setFirstTimeLogin(false)
+                    }
+                    // Navigate to Login
+                    navController.navigate("login") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
                 }
-            }
             )
-        }
-
-
-        composable(Routes.signupScreen.route){
-            SignUpScreen(navController,authViewModel)
-        }
-
-        composable(Routes.viewAllProduct.route){
-            ViewAllProductScreen(productViewModel,navController)
         }
 
         composable(
@@ -145,108 +108,150 @@ fun AppNavigation(authViewModel: AuthViewModel,context: Context) {
             )
         }
 
-        composable(Routes.cartScreen.route) {
+        composable("cart") {
             CartScreen(
                 navController = navController,
                 cartViewModel = cartViewModel
             )
         }
 
-        composable(Routes.wishlistScreen.route) {
-            WishlistScreen(
+        composable("checkout") {
+            com.example.stylistshoppingapplication.presentation.screens.CheckoutScreen(
+                navController = navController,
+                cartViewModel = cartViewModel
+            )
+        }
+
+        composable("payment") {
+            com.example.stylistshoppingapplication.presentation.screens.PaymentScreen(
+                navController = navController,
+                cartViewModel = cartViewModel
+            )
+        }
+        
+        composable("login") {
+            LoginScreen(
+                navController = navController,
+                onRegister = { 
+                    navController.navigate("signup")
+                },
+                onForgot = { 
+                    navController.navigate("forgot_password")
+                },
+                authViewModel = authViewModel
+            )
+        }
+        
+        composable("signup") {
+            com.example.stylistshoppingapplication.presentation.screens.SignUpScreen(
+                navController = navController,
+                onLoginClick = {
+                    navController.popBackStack()
+                },
+                authViewModel = authViewModel
+            )
+        }
+        
+        composable("forgot_password") {
+            com.example.stylistshoppingapplication.presentation.screens.ForgotPasswordScreen(
+                navController = navController,
+                onSubmit = { email ->
+                    // Handle password reset logic here (e.g., call ViewModel)
+                    // For now, just pop back
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("wishlist") {
+            com.example.stylistshoppingapplication.presentation.screens.WishlistScreen(
                 navController = navController,
                 wishlistViewModel = wishlistViewModel,
                 cartViewModel = cartViewModel
             )
         }
-
-        composable(Routes.searchScreen.route) {
-            SearchScreen(
+        
+        composable("search") {
+            com.example.stylistshoppingapplication.presentation.screens.SearchScreen(
                 navController = navController,
                 searchViewModel = searchViewModel,
                 productViewModel = productViewModel
             )
         }
+        
+        composable("settings") {
+            com.example.stylistshoppingapplication.presentation.screens.SettingsScreen(
+                navController = navController
+            )
+        }
 
-        composable(Routes.checkoutScreen.route) {
-            CheckoutScreen(
+        composable("featured_products") {
+            com.example.stylistshoppingapplication.presentation.screens.FeaturedProductScreen(
                 navController = navController,
+                productViewModel = productViewModel,
                 cartViewModel = cartViewModel
             )
         }
 
-        composable(Routes.placeOrderScreen.route) {
-            PlaceOrderScreen(
+        composable("trending_products") {
+            com.example.stylistshoppingapplication.presentation.screens.TrendingProductScreen(
                 navController = navController,
+                productViewModel = productViewModel,
                 cartViewModel = cartViewModel
             )
         }
 
-        composable(Routes.paymentSuccessScreen.route) {
-            PaymentSuccessScreen(
-                onClose = {
-                    navController.navigate(Routes.homescreen.route) {
-                        popUpTo(Routes.homescreen.route) { inclusive = true }
-                    }
-                }
+        composable(
+            route = "category_products/{category}",
+            arguments = listOf(navArgument("category") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category") ?: ""
+            com.example.stylistshoppingapplication.presentation.screens.CategoryProductScreen(
+                category = category,
+                navController = navController,
+                cartViewModel = cartViewModel
             )
         }
-
-        composable(Routes.profileScreen.route) {
-            ProfileScreen(navController = navController)
-        }
-
-        composable(Routes.settingsScreen.route) {
-            SettingsScreen(navController = navController)
-        }
-
-
-
-
-    }
-    LaunchedEffect(
-        userPreferencesState.isLoading,
-        userPreferencesState.isLogedIn,
-        userPreferencesState.isFirstTimeLogedIn
-    ) {
-        // Wait for loading to complete
-        if (!userPreferencesState.isLoading) {
-            // Add a small delay for splash screen
-            delay(2000) // 2 seconds splash
-
-            val destination = when {
-                // Case 3: User is logged in and not first time -> Home
-                userPreferencesState.isLogedIn && !userPreferencesState.isFirstTimeLogedIn -> {
-                    Routes.homescreen.route
-                }
-                // Case 2: User is logged in but first time -> Onboarding
-                userPreferencesState.isLogedIn && userPreferencesState.isFirstTimeLogedIn -> {
-                    Routes.onborardingScreen.route
-                }
-                // Case 1: User not logged in -> Login
-                else -> {
-                    Routes.loginScreen.route
-                }
-            }
-
-            navController.navigate(destination) {
-                popUpTo(Routes.splashScreen.route) { inclusive = true }
-            }
+        
+        composable("profile") {
+            com.example.stylistshoppingapplication.presentation.screens.ProfileScreen(
+                navController = navController,
+                viewModel = profileViewModel
+            )
         }
     }
+}
+
+@Composable
+fun SplashScreenWithNavigation(
+    navController: NavController,
+    dataStore: com.example.stylistshoppingapplication.data.local.UserPrefrenceDataStore
+) {
+    SplashScreen()
     
-    // Handle navigation after successful authentication
-    val authState = authViewModel.authState.collectAsState().value
-    LaunchedEffect(authState) {
-        when (authState) {
-            is Results.Success -> {
-                // After successful authentication, let the user preferences logic handle navigation
-                // The user preferences will be updated by the AuthViewModel
+    val isFirstTime = dataStore.isFirsttimeLogin.collectAsState(initial = true)
+    val isLoggedIn = dataStore.isLogin.collectAsState(initial = false)
+    
+    // Navigation from splash
+    LaunchedEffect(isFirstTime.value, isLoggedIn.value) {
+        delay(2000) // 2 seconds splash
+        
+        if (isFirstTime.value) {
+            navController.navigate("onboarding") {
+                popUpTo("splash") { inclusive = true }
             }
-            else -> {}
+        } else {
+            if (isLoggedIn.value) {
+                navController.navigate("home") {
+                    popUpTo("splash") { inclusive = true }
+                }
+            } else {
+                navController.navigate("login") {
+                    popUpTo("splash") { inclusive = true }
+                }
+            }
         }
     }
-
 }
 
 

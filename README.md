@@ -1,184 +1,46 @@
-# Stylist Shopping Application
+# Stylist Shopping Application 🛍️
 
-A modern Android e-commerce application built with Kotlin and Jetpack Compose, featuring a comprehensive shopping experience with user authentication, product browsing, cart management, and order processing.
+A modern, feature-rich Android e-commerce application built using **Kotlin** and **Jetpack Compose**. This app provides a seamless shopping experience with a clean UI, real-time product data, and secure user authentication.
 
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Screenshots](#screenshots)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Features Implemented](#features-implemented)
-- [Installation](#installation)
-- [Contributing](#contributing)
+## 📱 Features
 
-## Project Overview
+*   **User Authentication**: Secure Login and Sign-Up functionality using **Firebase Auth**.
+*   **Dynamic Home Screen**:
+    *   **Featured & Trending Products**: Horizontally scrollable lists of products.
+    *   **Categories**: Easy navigation by product categories (Men, Women, Electronics, etc.).
+    *   **Banner Carousel**: Auto-scrolling promotional banners.
+    *   **Special Offers & Sponsored Cards**: Dedicated sections for sales and promotions.
+*   **Product Discovery**:
+    *   **Search**: Integrated search functionality to find products quickly.
+    *   **Product Details**: Comprehensive product views with image carousels, size selection, price breakdown, and ratings.
+*   **Shopping Cart**: Add items to cart and manage your shopping list.
+*   **User Profile**:
+    *   **Profile Management**: View and update user details.
+    *   **Profile Photo**: Upload and display profile pictures (persisted locally).
+*   **Onboarding**: Smooth onboarding flow for first-time users.
 
-The Stylist Shopping Application is a full-featured e-commerce Android app that provides users with a seamless shopping experience. Built with modern Android development practices, it includes user authentication, product browsing, cart management, wishlist functionality, and a complete checkout process.
+## 🛠️ Tech Stack
 
-## Key Features
+*   **Language**: Kotlin
+*   **UI Framework**: Jetpack Compose (Material3)
+*   **Architecture**: MVVM (Model-View-ViewModel)
+*   **Network**: Retrofit & OkHttp
+*   **Image Loading**: Coil
+*   **Local Storage**: Room Database & DataStore Preferences
+*   **Authentication**: Firebase Authentication
+*   **Navigation**: Jetpack Navigation Compose
+*   **Asynchronous Programming**: Coroutines & Flow
 
-### Authentication
-- Firebase Authentication integration
-- Google Sign-In support
-- Email/password registration and login
-- Profile management with image upload
+## 🤝 Contribution
 
-### Product Browsing
-- Category-based product navigation
-- Featured and trending products display
-- Product search functionality
-- Detailed product views with images and descriptions
+I welcome contributions from the community! If you're interested in enhancing the app's performance, adding new features, or fixing bugs, please feel free to fork the repository and submit a pull request.
 
-### Shopping Experience
-- Add/remove products from cart
-- Wishlist functionality
-- Multi-step checkout process
-- Order history tracking
+**Areas for Improvement:**
+*   Performance optimization for large lists.
+*   Implementing a real payment gateway integration.
+*   Adding unit and UI tests.
+*   Enhancing the UI/UX with more animations.
 
-### UI/UX
-- Modern Material Design 3 implementation
-- Responsive layouts for all screen sizes
-- Smooth animations and transitions
-- Dark theme support
+## 📄 License
 
-## Screenshots
-
-*(Add screenshots of your app here)*
-
-## Tech Stack
-
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose
-- **Architecture**: MVVM (Model-View-ViewModel)
-- **Database**: Room Database, Firebase Firestore
-- **Authentication**: Firebase Authentication
-- **Image Loading**: Coil
-- **Navigation**: Jetpack Navigation
-- **Build System**: Gradle with Kotlin DSL
-- **Dependency Injection**: Manual DI
-- **Testing**: JUnit, Espresso
-
-## Architecture
-
-The app follows the MVVM architectural pattern with a clean separation of concerns:
-
-```
-app/
-├── data/
-│   ├── local/           # Room Database entities and DAOs
-│   ├── remote/          # Firebase integration
-│   └── repository/      # Data repository implementations
-├── domain/
-│   ├── model/           # Data models
-│   └── repository/      # Repository interfaces
-├── presentation/
-│   ├── screens/         # Compose UI screens
-│   ├── ViewModel/       # ViewModels for UI logic
-│   └── scafold/         # Custom scaffold components
-└── ui/
-    └── theme/           # Material theme definitions
-```
-
-## Features Implemented
-
-### 1. User Authentication
-- Firebase Authentication with email/password
-- Google Sign-In integration
-- User profile management
-- Profile image upload and storage
-
-### 2. Home Screen
-- Auto-scrolling banner section with page indicators
-- Category browsing (Beauty, Fashion, Kids, Mens, Womens)
-- Featured products horizontal scrolling
-- Deal of the Day section
-- Special Offers card
-- Flat and Heels section
-- Trending products display
-- Summer Sale banner with animations
-
-### 3. Product Catalog
-- Product listing by categories
-- Search functionality
-- Product detail screens
-- Image gallery support
-
-### 4. Shopping Cart
-- Add/remove products
-- Quantity adjustment
-- Real-time price calculation
-- Persistent storage
-
-### 5. Wishlist
-- Save favorite products
-- Quick access to desired items
-
-### 6. Checkout Process
-- Address management
-- Payment method selection
-- Order summary
-- Order confirmation
-
-### 7. Order Management
-- Order history
-- Order status tracking
-- Reorder functionality
-
-### 8. Profile Management
-- Personal information editing
-- Profile image management
-- Settings configuration
-
-### 9. UI Components
-- Custom animated banners
-- Product cards with wishlist and cart buttons
-- Category chips
-- Search bar with suggestions
-- Bottom navigation
-- Custom dialogs and alerts
-
-## Installation
-
-### Prerequisites
-- Android Studio Arctic Fox or later
-- Kotlin 1.5+
-- Android SDK API level 21+
-
-### Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/StylistShoppingApplication.git
-   ```
-
-2. Open the project in Android Studio
-
-3. Add your Firebase configuration file (`google-services.json`) to the `app/` directory
-
-4. Build and run the project
-
-### Firebase Setup
-1. Create a new Firebase project at https://console.firebase.google.com/
-2. Add an Android app to your Firebase project
-3. Download the `google-services.json` file
-4. Place the file in the `app/` directory
-5. Enable Authentication methods (Email/Password, Google Sign-In)
-6. Set up Firestore database
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Icons provided by Material Design
-- Images from various free sources
-- Inspired by modern e-commerce applications
+This project is open-source and available under the MIT License.

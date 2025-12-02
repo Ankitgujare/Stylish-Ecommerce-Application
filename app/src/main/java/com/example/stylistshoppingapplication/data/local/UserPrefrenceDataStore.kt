@@ -1,8 +1,6 @@
 package com.example.stylistshoppingapplication.data.local
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
-
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -16,9 +14,10 @@ class UserPrefrenceDataStore(private val context:Context) {
 
 
     companion object{
-        private val Context.datastore:DataStore<Preferences>by preferencesDataStore("user-prefrences")
+        private val Context.datastore:DataStore<Preferences>by preferencesDataStore("user-preferences")
         private val IS_FIRST_TIME_LOGIN= booleanPreferencesKey("is_first_time_login")
-        private val IS_LOGGED_IN= booleanPreferencesKey("Is_loged_In")
+        private val IS_LOGGED_IN= booleanPreferencesKey("is_logged_in")
+        private val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
     }
 
 
@@ -28,6 +27,10 @@ class UserPrefrenceDataStore(private val context:Context) {
 
     val isLogin: Flow<Boolean> = context.datastore.data.map { preferences->
         preferences[IS_LOGGED_IN]?:false
+    }
+
+    val isDarkMode: Flow<Boolean> = context.datastore.data.map { preferences ->
+        preferences[IS_DARK_MODE] ?: false
     }
 
 
@@ -44,7 +47,9 @@ class UserPrefrenceDataStore(private val context:Context) {
         }
     }
 
-
-
-
+    suspend fun setDarkMode(isDarkMode: Boolean) {
+        context.datastore.edit { preferences ->
+            preferences[IS_DARK_MODE] = isDarkMode
+        }
+    }
 }

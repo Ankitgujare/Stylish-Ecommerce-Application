@@ -22,9 +22,13 @@ import com.example.stylistshoppingapplication.R
 
 @Composable
 fun SettingsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: com.example.stylistshoppingapplication.presentation.ViewModel.userPrefrenceViewModel.UserPrefrenceViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = com.example.stylistshoppingapplication.presentation.ViewModel.viewModelFactory.UserPrefrenceViewModelFactory(androidx.compose.ui.platform.LocalContext.current)
+    )
 ) {
-    var isDarkMode by remember { mutableStateOf(false) }
+    val uiState by viewModel.state.collectAsState()
+    
     var notificationsEnabled by remember { mutableStateOf(true) }
     var emailNotifications by remember { mutableStateOf(true) }
     var pushNotifications by remember { mutableStateOf(false) }
@@ -32,7 +36,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background) // Use theme background
             .verticalScroll(rememberScrollState())
     ) {
         // Header
@@ -46,14 +50,14 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onBackground // Use theme color
                 )
             }
             Text(
                 text = "Settings",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground, // Use theme color
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -68,8 +72,8 @@ fun SettingsScreen(
                     subtitle = "Switch between light and dark themes",
                     trailing = {
                         Switch(
-                            checked = isDarkMode,
-                            onCheckedChange = { isDarkMode = it }
+                            checked = uiState.isDarkMode,
+                            onCheckedChange = { viewModel.setDarkMode(it) }
                         )
                     }
                 )
@@ -229,7 +233,7 @@ fun SettingsSection(
             text = title,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         
@@ -248,7 +252,7 @@ fun SettingsItemRow(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .clickable { item.onClick?.invoke() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -274,7 +278,7 @@ fun SettingsItemRow(
                     text = item.title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (item.subtitle.isNotEmpty()) {
                     Text(

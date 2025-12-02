@@ -1,6 +1,6 @@
 package com.example.stylistshoppingapplication.data.reposatoryImp
 
-import android.preference.PreferenceDataStore
+
 import com.example.stylistshoppingapplication.data.local.UserPrefrenceDataStore
 import com.example.stylistshoppingapplication.domain.reposatory.userPreferenceReposatory.UserPreferenceReposatory
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +14,8 @@ class UserPrefrenceImplementation(
 
     override val isLogedIn:Flow<Boolean> = userPreferenceDataStore.isLogin
 
+    override val isDarkMode: Flow<Boolean> = userPreferenceDataStore.isDarkMode
+
 
     override suspend fun IsFirstTimeLogin(isfirstTimeLogin: Boolean) {
         userPreferenceDataStore.setFirstTimeLogin(isfirstTimeLogin)
@@ -21,5 +23,9 @@ class UserPrefrenceImplementation(
 
     override suspend fun IsLogedIn(isLogedIn: Boolean) {
         userPreferenceDataStore.isLogedIn(isLogedIn)
+    }
+
+    override suspend fun setDarkMode(isDarkMode: Boolean) {
+        userPreferenceDataStore.setDarkMode(isDarkMode)
     }
 }

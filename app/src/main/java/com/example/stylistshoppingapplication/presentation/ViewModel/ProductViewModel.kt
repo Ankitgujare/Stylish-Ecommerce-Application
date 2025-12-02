@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 
 
 class ProductViewModel : ViewModel() {
-    private val apiService = Apiservices()
-    private val repository: ProductRepository = ProductRepositoryImp(apiService)
+    private val apiService by lazy { Apiservices() }
+    private val repository: ProductRepository by lazy { ProductRepositoryImp(apiService) }
 
     private val _uiState = MutableStateFlow<ProductUiState>(ProductUiState.Loading)
     val uiState: StateFlow<ProductUiState> = _uiState.asStateFlow()
@@ -26,18 +26,21 @@ class ProductViewModel : ViewModel() {
     }
 
     fun fetchProducts() {
-        viewModelScope.launch {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
-                val products = repository.getAllProduct()
+                // Limit to 30 products to prevent ANR and improve performance
+                val products = repository.getAllProduct(limit = 5000)
                 if (products.isEmpty()) {
                     _uiState.value = ProductUiState.Error("No products found")
                 } else {
                     _uiState.value = ProductUiState.Success(
-                        featuredProducts = products.take(30),
-                        trendingProducts = products.shuffled().take(30)
+                        featuredProducts = products, // First 15 for featured
+                        trendingProducts = products, // Random 15 for trending
+                        allProducts = products
                     )
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _uiState.value = ProductUiState.Error("Failed to load products: ${e.localizedMessage}")
             }
         }
@@ -47,7 +50,8 @@ class ProductViewModel : ViewModel() {
         object Loading : ProductUiState()
         data class Success(
             val featuredProducts: List<ProductModel>,
-            val trendingProducts: List<ProductModel>
+            val trendingProducts: List<ProductModel>,
+            val allProducts: List<ProductModel> = emptyList()
         ) : ProductUiState()
         data class Error(val message: String) : ProductUiState()
     }

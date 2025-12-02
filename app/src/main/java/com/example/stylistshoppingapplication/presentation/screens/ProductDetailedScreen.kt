@@ -29,6 +29,8 @@ import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.stylistshoppingapplication.domain.model.ProductModel
+import com.example.stylistshoppingapplication.domain.model.CartItem
+import android.widget.Toast
 import com.example.stylistshoppingapplication.navigation.Routes
 import com.example.stylistshoppingapplication.presentation.ViewModel.ProductViewModel
 import com.example.stylistshoppingapplication.presentation.ViewModel.CartViewModel
@@ -71,6 +73,35 @@ fun ProductDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    // Share Button
+                    IconButton(onClick = {
+                        currentProduct?.let { product ->
+                            val sendIntent: Intent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, "Check out this product: ${product.title} - ₹${product.price}")
+                                type = "text/plain"
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, null)
+                            context.startActivity(shareIntent)
+                        }
+                    }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share")
+                    }
+
+                    // Wishlist Button
+                    IconButton(onClick = {
+                        currentProduct?.let { product ->
+                            wishlistViewModel?.toggleWishlist(product)
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isInWishlist) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Wishlist",
+                            tint = if (isInWishlist) Color.Red else Color.Black
+                        )
+                    }
                 }
             )
         },
@@ -81,13 +112,14 @@ fun ProductDetailScreen(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
-                    onClick = { 
+                // Add to Cart Button
+                OutlinedButton(
+                    onClick = {
                         currentProduct?.let { product ->
                             cartViewModel?.addToCart(product, selectedSize = selectedSize)
+                            Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .weight(1f)
@@ -96,15 +128,20 @@ fun ProductDetailScreen(
                     Text("Add to Cart", fontWeight = FontWeight.Bold)
                 }
 
+                // Buy Now Button
                 Button(
                     onClick = { 
                         currentProduct?.let { product ->
-                            // Add to cart and navigate to checkout
-                            cartViewModel?.addToCart(product, selectedSize = selectedSize)
-                            navController.navigate(Routes.checkoutScreen.route)
+                            val cartItem = CartItem(
+                                product = product,
+                                quantity = 1,
+                                selectedSize = selectedSize
+                            )
+                            cartViewModel?.prepareCheckout(listOf(cartItem))
+                            navController.navigate("checkout")
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .weight(1f)

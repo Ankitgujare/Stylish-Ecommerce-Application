@@ -42,8 +42,10 @@ class Apiservices {
     }
 
 
-    suspend fun getAllProduct(): ProductDto {
-        return client.get("/products").body()
+    suspend fun getAllProduct(limit: Int = 0): ProductDto {
+        return client.get("/products") {
+            parameter("limit", limit)
+        }.body()
     }
 
 }

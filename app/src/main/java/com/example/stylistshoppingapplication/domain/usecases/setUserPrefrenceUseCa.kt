@@ -2,16 +2,20 @@ package com.example.stylistshoppingapplication.domain.usecases
 
 import com.example.stylistshoppingapplication.domain.reposatory.userPreferenceReposatory.UserPreferenceReposatory
 
-class SetUserPrefrenceUseCase(
-    private val UserPrefrenceRepo:UserPreferenceReposatory) {
+class SetUserPreferenceUseCase(
+    private val userPreferenceRepo:UserPreferenceReposatory) {
 
 
-     suspend fun setFirstTimeLogedIn(isFirtTime:Boolean){
-         UserPrefrenceRepo.IsFirstTimeLogin(isFirtTime)
+     suspend fun setFirstTimeLoggedIn(isFirstTime:Boolean){
+         userPreferenceRepo.IsFirstTimeLogin(isFirstTime)
      }
 
-     suspend fun SetLogeIn(isLogedIn:Boolean){
-        UserPrefrenceRepo.IsLogedIn(isLogedIn)
+     suspend fun setLoggedIn(isLoggedIn:Boolean){
+        userPreferenceRepo.IsLogedIn(isLoggedIn)
+     }
+
+     suspend fun setDarkMode(isDarkMode:Boolean){
+         userPreferenceRepo.setDarkMode(isDarkMode)
      }
 
 

@@ -10,8 +10,8 @@ import com.example.stylistshoppingapplication.domain.reposatory.ProductReposator
 class ProductRepositoryImp(
     private val apiService: Apiservices
 ) : ProductRepository {
-    override suspend fun getAllProduct(): List<ProductModel> {
-        val dto = apiService.getAllProduct()
+    override suspend fun getAllProduct(limit: Int): List<ProductModel> {
+        val dto = apiService.getAllProduct(limit)
         return dto.products.map { it.toDomain() } // map DTO -> Model
     }
 }

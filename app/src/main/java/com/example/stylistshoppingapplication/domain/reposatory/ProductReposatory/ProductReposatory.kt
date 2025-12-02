@@ -5,5 +5,5 @@ import com.example.stylistshoppingapplication.domain.model.ProductModel
 
 
 interface ProductRepository {
-    suspend fun getAllProduct(): List<ProductModel>
+    suspend fun getAllProduct(limit: Int = 0): List<ProductModel>
 }

@@ -71,8 +71,11 @@ fun LoginScreen(
     LaunchedEffect(authState) {
         when(val currentstate=authState){
             is Results.Success->{
-                // Let AppNavigation handle the navigation based on user preferences
-                // This will show onboarding for first-time users and home for returning users
+                // Navigate to home - AppNavigation will handle onboarding for first-time users
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
+                
             }
 
             is Results.Failure->{

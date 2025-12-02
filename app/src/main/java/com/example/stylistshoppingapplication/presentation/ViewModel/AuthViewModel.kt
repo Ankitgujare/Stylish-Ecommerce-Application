@@ -1,12 +1,12 @@
 package com.example.stylistshoppingapplication.presentation.ViewModel
 
 import android.content.Context
-import androidx.compose.runtime.Recomposer
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stylistshoppingapplication.data.local.model.ProfileEntity
 import com.example.stylistshoppingapplication.data.local.repository.ProfileRepository
-import com.example.stylistshoppingapplication.domain.usecases.SetUserPrefrenceUseCase
+import com.example.stylistshoppingapplication.domain.usecases.SetUserPreferenceUseCase
 import com.example.stylistshoppingapplication.domain.usecases.SignupUsecase
 import com.example.stylistshoppingapplication.domain.usecases.GoogleSignInUseCase
 import com.example.stylistshoppingapplication.domain.util.Results
@@ -23,7 +23,8 @@ class AuthViewModel(
     private val loginUseCase: LoginUseCase,
     private val signupUsecase: SignupUsecase,
     private val googleSignInUseCase: GoogleSignInUseCase,
-    private val setUserPreferencesUseCase: SetUserPrefrenceUseCase,
+    private val setUserPreferencesUseCase: SetUserPreferenceUseCase,
+    private val profileRepository: ProfileRepository,
     private val context: Context
 ):ViewModel() {
 
@@ -38,8 +39,8 @@ class AuthViewModel(
                 _authState.value = result
                 if (result is Results.Success) {
                     // Mark as logged in and not first time anymore
-                     setUserPreferencesUseCase.SetLogeIn(true)
-                    setUserPreferencesUseCase.setFirstTimeLogedIn(false)
+                     setUserPreferencesUseCase.setLoggedIn(true)
+                    setUserPreferencesUseCase.setFirstTimeLoggedIn(false)
                 }
             } catch (e: Exception) {
                 _authState.value = Results.Failure(e.message ?: "Login failed")
@@ -56,8 +57,8 @@ class AuthViewModel(
                 _authState.value = result
                 if (result is Results.Success) {
                     // After signup, user is logged in but it's their first time
-                    setUserPreferencesUseCase.SetLogeIn(true)
-                    setUserPreferencesUseCase.setFirstTimeLogedIn(true) // First time user
+                    setUserPreferencesUseCase.setLoggedIn(true)
+                    setUserPreferencesUseCase.setFirstTimeLoggedIn(true) // First time user
                 }
             } catch (e: Exception) {
                 _authState.value = Results.Failure(e.message ?: "Signup failed")
@@ -82,15 +83,15 @@ class AuthViewModel(
                         val isFirstTime = user.displayName.isNullOrEmpty()
                         
                         // Mark as logged in
-                        setUserPreferencesUseCase.SetLogeIn(true)
-                        setUserPreferencesUseCase.setFirstTimeLogedIn(isFirstTime)
+                        setUserPreferencesUseCase.setLoggedIn(true)
+                        setUserPreferencesUseCase.setFirstTimeLoggedIn(isFirstTime)
                         
                         // Save Google profile data to local database
                         saveGoogleProfileToDatabase(user)
                     } else {
                         // Fallback: treat as new user
-                        setUserPreferencesUseCase.SetLogeIn(true)
-                        setUserPreferencesUseCase.setFirstTimeLogedIn(true)
+                        setUserPreferencesUseCase.setLoggedIn(true)
+                        setUserPreferencesUseCase.setFirstTimeLoggedIn(true)
                     }
                 }
             } catch (e: Exception) {
@@ -102,7 +103,6 @@ class AuthViewModel(
     private fun saveGoogleProfileToDatabase(user: com.google.firebase.auth.FirebaseUser) {
         viewModelScope.launch {
             try {
-                val profileRepository = ProfileRepository(context)
                 val profileEntity = ProfileEntity(
                     id = user.uid,
                     name = user.displayName ?: "",
@@ -133,8 +133,8 @@ class AuthViewModel(
                 val result = auth.signInWithCredential(credential).await()
                 _authState.value = Results.Success("Phone authentication successful")
                 // Mark as logged in and not first time anymore
-                setUserPreferencesUseCase.SetLogeIn(true)
-                setUserPreferencesUseCase.setFirstTimeLogedIn(false)
+                setUserPreferencesUseCase.setLoggedIn(true)
+                setUserPreferencesUseCase.setFirstTimeLoggedIn(false)
             } catch (e: Exception) {
                 _authState.value = Results.Failure(e.message ?: "Phone authentication failed")
             }
