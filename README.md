@@ -46,7 +46,7 @@ I welcome contributions from the community! If you're interested in enhancing th
 Ui screens
 ![Image Alt](https://github.com/Ankitgujare/Stylish-Ecommerce-Application/blob/18f4a92a7f230b1621c0fd09ea30c05b643b7dc9/One.png)
 
-![Image Alt](https://github.com/Ankitgujare/Stylish-Ecommerce-Application/blob/483f02270b097d09be2fbd4785e7253c7844a9a0/two.png)
+![Image Alt](https://github.com/Ankitgujare/Stylish-Ecommerce-Application/blob/9a54e87a82cdb8bf8aace5201e0e63a8633bb7eb/three.png)
 
 
 
